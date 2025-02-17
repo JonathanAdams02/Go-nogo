@@ -24,27 +24,33 @@ let goTrials = [
     { Word: 'GEEL', GO: true }
 ];
 
-// Create practice trials (3 GO, 2 NO-GO)
+// Create practice trials (7 GO, 3 NO-GO)
 let practiceTrial_go = [];
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < 7; i++) {
     practiceTrial_go.push(jsPsych.randomization.sampleWithoutReplacement(goTrials, 1)[0]);
 }
 practiceTrial_go = practiceTrial_go.map(trial => ({ ...trial, is_practice: true }));
 
-let practiceTrial_nogo = Array(2)
-    .fill()
-    .map(() => ({ Word: 'BLAUW', GO: false, is_practice: true }));
+let practiceTrial_nogo = [
+    { Word: 'BLAUW', GO: false, is_practice: true },
+    { Word: 'GROEN', GO: false, is_practice: true }
+];
+
+practiceTrial_nogo = jsPsych.randomization.sampleWithoutReplacement(practiceTrial_nogo, 3); // Ensure 3 NO-GO trials
 
 let practiceTrials = [...practiceTrial_go, ...practiceTrial_nogo];
-practiceTrials = jsPsych.randomization.shuffle(practiceTrials);
+practiceTrials = jsPsych.randomization.shuffle(practiceTrials); // Shuffle the practice trials
 
-// Create the main trials
-let allGoTrials = jsPsych.randomization.repeat(goTrials, 30);
-let allNogoTrials = Array(20)
-    .fill()
-    .map(() => ({ Word: 'BLAUW', GO: false }));
+// Create the main trials (60 GO, 20 NO-GO)
+let allGoTrials = jsPsych.randomization.repeat(goTrials, 30); // 30 trials each for ROOD and GEEL
+
+// Randomly mix BLAUW and GROEN as NO-GO trials
+let allNogoTrials = [];
+for (let i = 0; i < 20; i++) {
+    allNogoTrials.push({ Word: Math.random() > 0.5 ? 'BLAUW' : 'GROEN', GO: false });
+}
+
 let conditions = [...allGoTrials, ...allNogoTrials].map(trial => ({ ...trial, is_practice: false })); // Ensure is_practice is false
-
 conditions = jsPsych.randomization.shuffle(conditions);
 
 // Define instructions
@@ -53,8 +59,8 @@ let instructions = {
     stimulus: `
         <p>In dit experiment zie je steeds verschillende woorden.</p>
         <p>Als je op het scherm '<span style="color: red;">ROOD</span>' of '<span style="color: yellow;">GEEL</span>' ziet, druk dan zo snel mogelijk op spatie.</p>
-        <p>Als je het woord '<span style="color: blue;">BLAUW</span>' ziet, druk NIET op spatie en wacht op het volgende woord.</p>
-        <p>Je krijgt eerst 5 oefenrondes.</p>
+        <p>Als je het woord '<span style="color: blue;">BLAUW</span>' of '<span style="color: green;">GROEN</span>' ziet, druk NIET op spatie en wacht op het volgende woord.</p>
+        <p>Je krijgt eerst 10 oefenrondes.</p>
         <p>In dit experiment is zowel snelheid als nauwkeurigheid van belang!</p>
         <p>Druk op een willekeurige toets om met het experiment te beginnen.</p>
     `,
@@ -168,6 +174,8 @@ function getWordColor(word) {
             return 'yellow';
         case 'BLAUW':
             return 'blue';
+        case 'GROEN':
+            return 'green';
         default:
             return 'black';
     }
@@ -267,7 +275,7 @@ function downloadData() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `gonogo_data_participant_${jsPsych.data.get().first(1).values()[0]?.participant_id || "UNKNOWN"}.csv`;
+    link.download = `pre_test_gonogo_data_participant_${jsPsych.data.get().first(1).values()[0]?.participant_id || "UNKNOWN"}.csv`;
     
     // Check if automatic download fails
     link.click();
