@@ -11,7 +11,7 @@ const jsPsych = initJsPsych({
 let participant_id_trial = {
   type: jsPsychSurveyText,
   questions: [
-    { prompt: "Please enter your participant ID:", name: "participant_id", required: true }
+    { prompt: "Voer hier je deelnemer ID in:", name: "participant_id", required: true }
   ],
   on_finish: function(data) {
     jsPsych.data.addProperties({ participant_id: data.response.participant_id });
@@ -51,14 +51,16 @@ conditions = jsPsych.randomization.shuffle(conditions);
 let instructions = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: `
-        <p>In this experiment, you will see different colored words.</p>
-        <p>If you see the word 'ROOD' or 'GEEL', press the SPACEBAR as quickly as you can.</p>
-        <p>If you see the word 'BLAUW', do NOT press any key - just wait for the next word.</p>
-        <p>First, you will do 5 practice trials.</p>
-        <p>Press any key to start the practice.</p>
+        <p>In dit experiment zie je steeds verschillende woorden.</p>
+        <p>Als je op het scherm '<span style="color: red;">ROOD</span>' of '<span style="color: yellow;">GEEL</span>' ziet, druk dan zo snel mogelijk op spatie.</p>
+        <p>Als je het woord '<span style="color: blue;">BLAUW</span>' ziet, druk NIET op spatie en wacht op het volgende woord.</p>
+        <p>Je krijgt eerst 5 oefenrondes.</p>
+        <p>In dit experiment is zowel snelheid als nauwkeurigheid van belang!</p>
+        <p>Druk op een willekeurige toets om met het experiment te beginnen.</p>
     `,
     choices: "ALL_KEYS"
 };
+
 
 // Define the practice trial with feedback
 let practice_single_trial = {
@@ -93,11 +95,11 @@ let practice_single_trial = {
                 if (last_trial.is_go_trial && last_trial.response === ' ') {
                     feedbackMessage = `<p style="color: green;">Correct!</p>`;
                 } else if (last_trial.is_go_trial) {
-                    feedbackMessage = `<p style="color: red;">Too slow! Remember to press space for this color.</p>`;
+                    feedbackMessage = `<p style="color: red;">Incorrect!</p>`;
                 } else if (!last_trial.is_go_trial && last_trial.response === null) {
-                    feedbackMessage = `<p style="color: green;">Correct! Good job not responding.</p>`;
+                    feedbackMessage = `<p style="color: green;">Correct!</p>`;
                 } else {
-                    feedbackMessage = `<p style="color: red;">Incorrect! Remember not to press space for this color.</p>`;
+                    feedbackMessage = `<p style="color: red;">Incorrect!</p>`;
                 }
                 return feedbackMessage;
             },
@@ -145,19 +147,17 @@ let single_trial = {
     }
 };
 
-// Define end of practice message
+// Define end of practice message (Dutch)
 let practice_end = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: `
-        <p>You have completed the practice trials.</p>
-        <p>The main experiment will now begin.</p>
-        <p>Remember:</p>
-        <p>Press SPACEBAR for ROOD and GEEL</p>
-        <p>Do NOT press any key for BLAUW</p>
-        <p>Press any key to begin the main experiment.</p>
+        <p>Je hebt de oefenrondes voltooid.</p>
+        <p>Het hoofdexperiment zal nu beginnen.</p>
+        <p>Druk op een willekeurige toets om te beginnen.</p>
     `,
     choices: "ALL_KEYS"
 };
+
 
 // Function to get the color based on the word
 function getWordColor(word) {
@@ -180,7 +180,7 @@ timeline.push(participant_id_trial); // Ensure participant ID is first
 // Add welcome screen
 timeline.push({
     type: jsPsychHtmlKeyboardResponse,
-    stimulus: "Welcome to the experiment. Press any key to begin."
+    stimulus: "Welkom bij dit experiment, druk op een willekeurige toets om te beginnen."
 });
 timeline.push(instructions);
 
@@ -199,12 +199,37 @@ timeline.push({
     repetitions: 1
 });
 
-// Add end screen
+// Add end screen with mean RT and mean accuracy
 timeline.push({
     type: jsPsychHtmlKeyboardResponse,
-    stimulus: "<p>Thank you for participating! The experiment is now complete.</p>",
+    stimulus: function() {
+        // Get all trials (excluding practice trials)
+        let trial_data = jsPsych.data.get().filter({ is_practice: false }).values();
+        
+        // Calculate the mean RT for GO trials
+        let go_trials = trial_data.filter(trial => trial.is_go_trial === true);
+        let mean_rt = go_trials.length > 0 ? 
+                      go_trials.reduce((acc, trial) => acc + trial.rt, 0) / go_trials.length 
+                      : 0;
+        
+        // Calculate the mean accuracy for all trials
+        let total_trials = trial_data.length;
+        let correct_trials = trial_data.filter(trial => {
+            return (trial.is_go_trial && trial.response === ' ') || 
+                   (!trial.is_go_trial && trial.response === null);
+        }).length;
+
+        let accuracy = total_trials > 0 ? correct_trials / total_trials : 0;
+
+        return `
+            <p>Bedankt voor het meedoen!</p>
+            <p>Het experiment is nu voltooid.</p>
+            <p>Gemiddelde RT voor GO-trials: ${mean_rt.toFixed(2)} ms</p>
+            <p>Gemiddelde nauwkeurigheid: ${(accuracy * 100).toFixed(2)}%</p>
+        `;
+    },
     choices: "NO_KEYS",
-    trial_duration: 1000,  // Display the end screen for 3 seconds
+    trial_duration: 5000,  // Show this screen for 5 seconds
     on_finish: function() {
         downloadData(); // Automatically download the data when the end screen appears
     }
