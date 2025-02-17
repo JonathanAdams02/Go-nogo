@@ -224,6 +224,7 @@ timeline.push({
         return `
             <p>Bedankt voor het meedoen!</p>
             <p>Het experiment is nu voltooid.</p>
+            <p>Wacht tot de data is gedownload, daarna kan je dit tabblad sluiten.</p>
             <p>Gemiddelde RT voor GO-trials: ${mean_rt.toFixed(2)} ms</p>
             <p>Gemiddelde nauwkeurigheid: ${(accuracy * 100).toFixed(2)}%</p>
         `;
