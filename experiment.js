@@ -230,7 +230,7 @@ timeline.push({
         `;
     },
     choices: "NO_KEYS",
-    trial_duration: 5000,  // Show this screen for 5 seconds
+    trial_duration: 1000,  // Show this screen for 5 seconds
     on_finish: function() {
         downloadData(); // Automatically download the data when the end screen appears
     }
