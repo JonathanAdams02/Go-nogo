@@ -62,7 +62,7 @@ let instructions = {
         <p>Als je het woord '<span style="color: blue;">BLAUW</span>' of '<span style="color: green;">GROEN</span>' ziet, druk NIET op spatie en wacht op het volgende woord.</p>
         <p>Je krijgt eerst 10 oefenrondes.</p>
         <p>In dit experiment is zowel snelheid als nauwkeurigheid van belang!</p>
-        <p>Druk op een willekeurige toets om met het experiment te beginnen.</p>
+        <p>Druk op een willekeurige toets om met het experiment te beginnen!</p>
     `,
     choices: "ALL_KEYS"
 };
