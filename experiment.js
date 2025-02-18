@@ -135,7 +135,7 @@ let single_trial = {
                 return `<p style="font-size: 48px; color: ${getWordColor(jsPsych.timelineVariable('Word'))};">${jsPsych.timelineVariable('Word')}</p>`;
             },
             choices: [' '],
-            trial_duration: 2000,
+            trial_duration: 1000,
             response_ends_trial: true,
             data: function() {
                 return {
