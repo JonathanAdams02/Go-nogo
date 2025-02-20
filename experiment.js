@@ -51,12 +51,29 @@ for (let i = 0; i < 20; i++) {
 }
 
 let conditions = [...allGoTrials, ...allNogoTrials].map(trial => ({ ...trial, is_practice: false })); // Ensure is_practice is false
+
+// Function to check for and break up sequences of 4 identical words
+function preventConsecutiveWords(trials) {
+    for (let i = 0; i < trials.length - 3; i++) {
+        if (trials[i].Word === trials[i + 1].Word && trials[i].Word === trials[i + 2].Word && trials[i].Word === trials[i + 3].Word) {
+            // If 4 identical words are found in a row, swap the 4th one with a different word
+            let availableWords = ['ROOD', 'GEEL', 'BLAUW', 'GROEN'];
+            let currentWord = trials[i].Word;
+            let newWord = availableWords.filter(word => word !== currentWord)[Math.floor(Math.random() * 3)];
+            trials[i + 3].Word = newWord;
+        }
+    }
+    return trials;
+}
+
+// Shuffle and then apply the sequence fix
 conditions = jsPsych.randomization.shuffle(conditions);
+conditions = preventConsecutiveWords(conditions);
 
 // Define instructions
 let instructions = {
     type: jsPsychHtmlKeyboardResponse,
-    stimulus: `
+    stimulus: ` 
         <p>In dit experiment zie je steeds verschillende woorden.</p>
         <p>Als je op het scherm '<span style="color: red;">ROOD</span>' of '<span style="color: yellow;">GEEL</span>' ziet, druk dan zo snel mogelijk op spatie.</p>
         <p>Als je het woord '<span style="color: blue;">BLAUW</span>' of '<span style="color: green;">GROEN</span>' ziet, druk NIET op spatie en wacht op het volgende woord.</p>
@@ -66,7 +83,6 @@ let instructions = {
     `,
     choices: "ALL_KEYS"
 };
-
 
 // Define the practice trial with feedback
 let practice_single_trial = {
@@ -164,7 +180,6 @@ let practice_end = {
     choices: "ALL_KEYS"
 };
 
-
 // Function to get the color based on the word
 function getWordColor(word) {
     switch (word) {
@@ -239,9 +254,7 @@ timeline.push({
     },
     choices: "NO_KEYS",
     trial_duration: 1000,  // Show this screen for 5 seconds
-    on_finish: function() {
-        downloadData(); // Automatically download the data when the end screen appears
-    }
+
 });
 
 // Function to download data
